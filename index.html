@@ -23,8 +23,8 @@
             min-height: 100vh;
             padding: 20px 0;
             /* **BACKGROUND IMAGE: Cozy cabin with Christmas tree and Santa's sled** */
-            /* *** UPDATED TO USE RELATIVE PATH FOR GITHUB HOSTING *** */
-            background: url('./assets/cozy-cabin.png') no-repeat center center fixed;
+            /* *** FIX: Changed to root path (/) for better GitHub Pages compatibility *** */
+            background: url('/assets/cozy-cabin.png') no-repeat center center fixed;
             background-size: cover;
             display: flex;
             flex-direction: column;
@@ -175,7 +175,7 @@
         // --- Initialization and Authentication ---
         async function initializeFirebase() {
             if (!firebaseConfig) {
-                console.error("Firebase configuration is missing.");
+                console.error("Firebase configuration is missing. Firestore will not function.");
                 return;
             }
 
@@ -258,7 +258,8 @@
         }
         
         async function submitDonation() {
-            if (!isAuthReady) return console.log("Authentication not ready.");
+            // Check if authentication is ready, but proceed with window.open() anyway.
+            if (!isAuthReady) console.log("Authentication not ready. Proceeding with external link.");
 
             const amountInput = document.getElementById('donationAmountInput');
             const amountStr = amountInput.value.trim();
@@ -270,10 +271,21 @@
             }
             document.getElementById('donationError').textContent = ""; // Clear error
 
+            // CRITICAL FIX: Open Venmo link BEFORE the await block to avoid popup blockers
+            window.open(`https://venmo.com/${VENMO_USERNAME}`, '_blank');
+            document.getElementById('donationStatus').textContent = `Thank you! Please complete your $${amount.toFixed(2)} payment to @${VENMO_USERNAME} on Venmo.`;
+
+            // If Firebase is not set up (i.e., on GitHub Pages), stop here.
+            if (!db) {
+                console.warn("Firestore is not initialized. Donation tracking update skipped.");
+                amountInput.value = '';
+                return;
+            }
+            
             const statusDocRef = doc(db, STATUS_DOC_PATH);
 
             try {
-                // Use a transaction to safely update the donation total
+                // This transaction runs asynchronously and updates the tracker
                 await runTransaction(db, async (transaction) => {
                     const docSnapshot = await transaction.get(statusDocRef);
                     const currentTotal = docSnapshot.data()?.totalDonations || 0;
@@ -282,19 +294,15 @@
                     transaction.update(statusDocRef, { totalDonations: newTotal });
                 });
                 
-                console.log(`Donation of $${amount.toFixed(2)} recorded.`);
+                console.log(`Donation of $${amount.toFixed(2)} recorded to Firestore.`);
                 
                 // Clear input
                 amountInput.value = '';
                 
-                // Open Venmo link for actual payment (This is a helpful external link for the user)
-                window.open(`https://venmo.com/${VENMO_USERNAME}`, '_blank');
-                
-                document.getElementById('donationStatus').textContent = `Thank you! Please complete your $${amount.toFixed(2)} payment to @${VENMO_USERNAME} on Venmo.`;
 
             } catch (e) {
-                console.error("Transaction failed:", e);
-                document.getElementById('donationStatus').textContent = "Error recording donation. Please try again.";
+                console.error("Firestore Transaction failed:", e);
+                // Note: The Venmo link still opened successfully above.
             }
         }
 
@@ -325,7 +333,10 @@
         }
         
         async function addComment() {
-            if (!isAuthReady) return console.log("Authentication not ready.");
+            if (!isAuthReady || !db) {
+                document.getElementById('commentError').textContent = "Real-time comments are only supported in the Canvas environment.";
+                return;
+            }
             
             const nameInput = document.getElementById('nameInput');
             const commentInput = document.getElementById('commentInput');
