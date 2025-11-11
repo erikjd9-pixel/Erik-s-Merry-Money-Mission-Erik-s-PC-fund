@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Christmas Fundraiser</title>
+<style>
+  body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    height: 100%;
+    background: #2a1a0f;
+    overflow-x: hidden;
+    color: #fff;
+  }
+
+  /* Cabin background */
+  .cabin {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    background: url('https://i.ibb.co/sK9H2Wb/cozy-cabin.jpg') no-repeat center/cover;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding-bottom: 50px;
+  }
+
+  /* Santa and reindeer animation */
+  .santa {
+    position: absolute;
+    top: 10%;
+    left: -200px;
+    width: 200px;
+    animation: fly 15s linear infinite;
+    z-index: 5;
+  }
+
+  @keyframes fly {
+    0% { left: -200px; top: 10%; }
+    50% { left: 50%; top: 5%; }
+    100% { left: 100%; top: 10%; }
+  }
+
+  .content {
+    background: rgba(0,0,0,0.6);
+    padding: 20px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 600px;
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  /* Venmo button */
+  .donate-btn {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    background-color: #3d95ce;
+    color: white;
+    text-align: center;
+    font-size: 18px;
+    border: none;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    cursor: pointer;
+  }
+
+  /* Donation bar */
+  .donation-bar-container {
+    background: rgba(255,255,255,0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .donation-bar {
+    height: 25px;
+    width: 0;
+    background-color: #3d95ce;
+    text-align: center;
+    line-height: 25px;
+    color: white;
+    font-weight: bold;
+    border-radius: 10px 0 0 10px;
+  }
+
+  /* Comment section */
+  #comments {
+    margin-top: 10px;
+  }
+
+  #comments ul {
+    list-style: none;
+    padding: 0;
+    max-height: 150px;
+    overflow-y: auto;
+  }
+
+  #comments li {
+    background: rgba(255,255,255,0.1);
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+  }
+
+  /* Leaderboard */
+  #leaderboard ul {
+    list-style: none;
+    padding: 0;
+    max-height: 150px;
+    overflow-y: auto;
+  }
+
+  #leaderboard li {
+    background: rgba(255,255,255,0.1);
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+  }
+
+  input, button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border: none;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="cabin">
+  <img src="https://i.ibb.co/YdTgGzV/santa-sled.png" alt="Santa" class="santa">
+
+  <div class="content">
+    <h1>🎄 Christmas Fundraiser 🎄</h1>
+    
+    <!-- Donation Bar -->
+    <div class="donation-bar-container">
+      <div class="donation-bar" id="donationBar">0%</div>
+    </div>
+    
+    <!-- Venmo Donate Button -->
+    <button class="donate-btn" onclick="donateVenmo()">
+      Donate via Venmo
+    </button>
+
+    <!-- Comment Section -->
+    <div id="comments">
+      <h3>Comments</h3>
+      <input type="text" id="commentInput" placeholder="Write a comment...">
+      <button onclick="addComment()">Post Comment</button>
+      <ul id="commentList"></ul>
+    </div>
+
+    <!-- Anonymous Leaderboard -->
+    <div id="leaderboard">
+      <h3>Leaderboard</h3>
+      <ul id="leaderboardList"></ul>
+      <input type="text" id="donorInput" placeholder="Enter your name (anonymous)">
+      <button onclick="addDonor()">Add to Leaderboard</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let totalDonations = 0;
+  const donationGoal = 500; // Change this to your goal amount
+
+  function updateDonationBar() {
+    const bar = document.getElementById('donationBar');
+    const percent = Math.min((totalDonations / donationGoal) * 100, 100);
+    bar.style.width = percent + '%';
+    bar.textContent = '$' + totalDonations;
+  }
+
+  function donateVenmo() {
+    const amount = prompt("Enter donation amount in $:");
+    if(!amount || isNaN(amount)) return;
+    totalDonations += parseFloat(amount);
+    updateDonationBar();
+    window.open('https://venmo.com/YOURUSERNAME', '_blank');
+  }
+
+  // Comment Section
+  function addComment() {
+    const input = document.getElementById('commentInput');
+    if(input.value.trim() === "") return;
+    const li = document.createElement('li');
+    li.textContent = input.value;
+    document.getElementById('commentList').appendChild(li);
+    input.value = '';
+  }
+
+  // Leaderboard Section (Anonymous)
+  function addDonor() {
+    const input = document.getElementById('donorInput');
+    if(input.value.trim() === "") return;
+    const li = document.createElement('li');
+    li.textContent = input.value + ' 🎁';
+    document.getElementById('leaderboardList').appendChild(li);
+    input.value = '';
+  }
+
+</script>
+
+</body>
+</html>
